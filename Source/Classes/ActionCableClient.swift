@@ -25,7 +25,7 @@ import Starscream
 
 public typealias ActionPayload = Dictionary<String, Any>
 
-open class ActionCableClient {
+@objc public class ActionCableClient:NSObject {
   
     //MARK: Socket
     fileprivate(set) var socket : WebSocket
@@ -34,45 +34,45 @@ open class ActionCableClient {
     ///
     /// If a disconnection occurs, reconnnectionStrategy determines and calculates
     /// the time interval at which a retry happens.
-    open var reconnectionStrategy : RetryStrategy = .logarithmicBackoff(maxRetries: 5, maxIntervalTime: 30.0)
+    public var reconnectionStrategy : RetryStrategy = .logarithmicBackoff(maxRetries: 5, maxIntervalTime: 30.0)
     
     //MARK: Global Callbacks
     /// Will Connect
     ///
     /// Called when the client is about to connect
-    open var willConnect: (() -> Void)?
+    @objc public var willConnect: (() -> Void)?
     /// On Connected
     ///
     /// Called when the client has connected
-    open var onConnected: (() -> Void)?
+    @objc public var onConnected: (() -> Void)?
     /// On Disconnected
     ///
     /// Called when the client disconnected
-    open var onDisconnected: ((ConnectionError?) -> Void)?
+    @objc public var onDisconnected: (() -> Void)?//@objc public var onDisconnected: ((ConnectionError?) -> Void)?
     /// Will Reconnect
     ///
     /// Called when the client is about to reconnect
-    open var willReconnect: (() -> Bool)?
+    @objc public var willReconnect: (() -> Bool)?
     /// On Rejected
     ///
     /// Called when the client has been rejected from connecting.
-    open var onRejected: (() -> Void)?
+    @objc public var onRejected: (() -> Void)?
     /// On Ping
     ///
     /// Called when the server pings the client
-    open var onPing: (() -> Void)?
+    @objc public var onPing: (() -> Void)?
     
     // MARK: Channel Callbacks
-    open var onChannelSubscribed: ((Channel) -> (Void))?
-    open var onChannelUnsubscribed: ((Channel) -> (Void))?
-    open var onChannelRejected: ((Channel) -> (Void))?
-    open var onChannelReceive: ((Channel, Any?, Swift.Error?) -> Void)?
+    @objc public var onChannelSubscribed: ((Channel) -> (Void))?
+    @objc public var onChannelUnsubscribed: ((Channel) -> (Void))?
+    @objc public var onChannelRejected: ((Channel) -> (Void))?
+    @objc public var onChannelReceive: ((Channel, Any?, Swift.Error?) -> Void)?
     
     //MARK: Properties
-    open var isConnected : Bool { return socket.isConnected }
-    open var url: Foundation.URL { return socket.currentURL }
+    @objc public var isConnected : Bool { return socket.isConnected }
+    @objc public var url: Foundation.URL { return socket.currentURL }
     
-    open var headers : [String: String]? {
+    @objc public var headers : [String: String]? {
         get { return socket.request.allHTTPHeaderFields }
         set {
             for (field, value) in newValue ?? [:] {
@@ -90,13 +90,14 @@ open class ActionCableClient {
     ///  ```swift
     ///  let client = ActionCableClient(URL: NSURL(string: "ws://localhost:3000/cable")!)
     ///  ```
-    public required init(url: URL) {
+    @objc public required init(url: URL) {
         /// Setup Initialize Socket
         socket = WebSocket(url: url)
+        super.init()
         setupWebSocket()
     }
     
-    public required init(url: URL, headers: [String: String]? = nil, origin : String? = nil) {
+    @objc public required init(url: URL, headers: [String: String]? = nil, origin : String? = nil) {
         /// Setup Initialize Socket
         var request = URLRequest(url: url)
         
@@ -109,12 +110,13 @@ open class ActionCableClient {
         }
         
         socket = WebSocket(request: request)
+        super.init()
         setupWebSocket()
     }
     
     /// Connect with the server
     @discardableResult
-    open func connect() -> ActionCableClient {
+    @objc public func connect() -> ActionCableClient {
         DispatchQueue.main.async {
           if let callback = self.willConnect {
             callback()
@@ -130,7 +132,7 @@ open class ActionCableClient {
     }
   
     /// Disconnect from the server.
-    open func disconnect() {
+    @objc public func disconnect() {
         manualDisconnectFlag = true
         socket.disconnect(forceTimeout: 0)
     }
@@ -210,7 +212,7 @@ extension ActionCableClient {
     ///     - name: The name of the channel. The name must match the class name on the server exactly. (e.g. RoomChannel)
     /// - Returns: a Channel
     
-    public func create(_ name: String) -> Channel {
+    @objc public func create(_ name: String) -> Channel {
         let channel = create(name, parameters: nil, autoSubscribe: true, bufferActions: true)
         return channel
     }
@@ -396,7 +398,7 @@ extension ActionCableClient {
             // as it will not seem accurate
             if manualDisconnectFlag { connectionError = nil }
             
-            DispatchQueue.main.async(execute: { callback(connectionError) })
+            DispatchQueue.main.async(execute: { callback() })//DispatchQueue.main.async(execute: { callback(connectionError) })
         }
         
         // Reset Manual Disconnect Flag
@@ -485,11 +487,11 @@ extension ActionCableClient {
     }
 }
 
-extension ActionCableClient : CustomDebugStringConvertible {
-    public var debugDescription : String {
-            return "ActionCableClient(url: \"\(socket.currentURL)\" connected: \(socket.isConnected) id: \(Unmanaged.passUnretained(self).toOpaque()))"
-    }
-}
+//extension ActionCableClient : CustomDebugStringConvertible {
+//    public var debugDescription : String {
+//            return "ActionCableClient(url: \"\(socket.currentURL)\" connected: \(socket.isConnected) id: \(Unmanaged.passUnretained(self).toOpaque()))"
+//    }
+//}
 
 extension ActionCableClient : CustomPlaygroundDisplayConvertible {
     public var playgroundDescription: Any {

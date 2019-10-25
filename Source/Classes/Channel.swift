@@ -26,26 +26,26 @@ public typealias ChannelParameters = ActionPayload
 public typealias OnReceiveClosure = ((Any?, Swift.Error?) -> (Void))
 
 /// A particular channel on the server.
-open class Channel: Hashable, Equatable {
+@objc public class Channel: NSObject {
     
     /// Name of the channel
-    open var name : String
+    @objc public var name : String
     
     /// Parameters
-    open var parameters: ChannelParameters?
+    @objc public var parameters: ChannelParameters?
 
     /// Channel identifier shared between the client and the server
-    open var identifier: String
+    @objc public var identifier: String
 
     /// Auto-Subscribe to channel on initialization and re-connect?
-    open var autoSubscribe : Bool
+    @objc public var autoSubscribe : Bool
     
     /// Buffer actions
     /// If not subscribed, buffer actions and flush until after a subscribe
-    open var shouldBufferActions : Bool
+    @objc public var shouldBufferActions : Bool
     
     /// Subscribed
-    open var isSubscribed : Bool {
+    @objc public var isSubscribed : Bool {
         return client.subscribed(identifier: identifier)
     }
     
@@ -61,7 +61,7 @@ open class Channel: Hashable, Equatable {
     ///     - object: Depends on what is sent. Usually a Dictionary.
     ///     - error: An error when decoding of the message failed.
     ///
-    open var onReceive: ((Any?, Swift.Error?) -> Void)?
+    @objc public var onReceive: ((Any?, Swift.Error?) -> Void)?
 
     /// A block called when the channel has been successfully subscribed.
     ///
@@ -73,16 +73,16 @@ open class Channel: Hashable, Equatable {
     ///     print("Yay!")
     /// }
     /// ```
-    open var onSubscribed: (() -> Void)?
+    @objc public var onSubscribed: (() -> Void)?
     
     /// A block called when the channel was unsubscribed.
     ///
     /// Note: This block is also called if the server disconnects.
-    open var onUnsubscribed: (() -> Void)?
+    @objc public var onUnsubscribed: (() -> Void)?
     
     /// A block called when a subscription attempt was rejected
     /// by the server.
-    open var onRejected: (() -> Void)?
+    @objc public var onRejected: (() -> Void)?
 
 
     internal init(name: String, parameters: ChannelParameters?, client: ActionCableClient, autoSubscribe: Bool=true, shouldBufferActions: Bool=true) {
@@ -105,7 +105,7 @@ open class Channel: Hashable, Equatable {
     }
 
 
-    open func onReceive(_ action:String, handler: @escaping (OnReceiveClosure)) -> Void {
+    @objc public func onReceive(_ action:String, handler: @escaping (OnReceiveClosure)) -> Void {
         onReceiveActionHooks[action] = handler
     }
 
@@ -125,7 +125,7 @@ open class Channel: Hashable, Equatable {
     ///     - action: The name of the action (e.g. speak)
     /// - Returns: `true` if the action was sent.
   
-    open subscript(name: String) -> (Dictionary<String, Any>) -> Swift.Error? {
+    @objc public subscript(name: String) -> (Dictionary<String, Any>) -> Swift.Error? {
         
         func executeParams(_ params : Dictionary<String, Any>?) -> Swift.Error?  {
             return action(name, with: params)
@@ -151,7 +151,7 @@ open class Channel: Hashable, Equatable {
     /// - Returns: A `TransmitError` if there were any issues sending the
     ///             message.
     @discardableResult
-    open func action(_ name: String, with params: [String: Any]? = nil) -> Swift.Error? {
+    @objc public func action(_ name: String, with params: [String: Any]? = nil) -> Swift.Error? {
         do {
           try (client.action(name, on: self, with: params))
         // Consume the error and return false if the error is a not subscribed
@@ -177,7 +177,7 @@ open class Channel: Hashable, Equatable {
     /// ```swift
     /// channel.subscribe()
     /// ```
-    open func subscribe() {
+    @objc public func subscribe() {
         client.subscribe(self)
     }
     
@@ -188,22 +188,22 @@ open class Channel: Hashable, Equatable {
     /// ```swift
     /// channel.unsubscribe()
     /// ```
-    open func unsubscribe() {
+    @objc public func unsubscribe() {
         client.unsubscribe(self)
     }
     
     internal var onReceiveActionHooks: Dictionary<String, OnReceiveClosure> = Dictionary()
     internal unowned var client: ActionCableClient
     internal var actionBuffer: Array<Action> = Array()
-    public var hashValue: Int {
+    override public var hash: Int {
         get {
             return Int(arc4random_uniform(UInt32(Int32.max)))
         }
     }
 
-    public func hash(into hasher: inout Hasher) {
-        hasher.combine(hashValue)
-    }
+//    public func hash(into hasher: inout Hasher) {
+//        hasher.combine(hashValue)
+//    }
 }
 
 public func ==(lhs: Channel, rhs: Channel) -> Bool {
@@ -263,11 +263,11 @@ extension Channel {
     }
 }
 
-extension Channel: CustomDebugStringConvertible {
-    public var debugDescription: String {
-        return "ActionCable.Channel<\(hashValue)>(name: \"\(self.name)\" subscribed: \(self.isSubscribed))"
-    }
-}
+//extension Channel: CustomDebugStringConvertible {
+//    public var debugDescription: String {
+//        return "ActionCable.Channel<\(hashValue)>(name: \"\(self.name)\" subscribed: \(self.isSubscribed))"
+//    }
+//}
 
 extension Channel: CustomPlaygroundDisplayConvertible {
     public var playgroundDescription: Any {
