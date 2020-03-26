@@ -57,11 +57,11 @@ internal class JSONSerializer {
         do {
             guard let JSONData = string.data(using: String.Encoding.utf8) else { throw SerializationError.json }
 
-            guard let JSONObj = try JSONSerialization.jsonObject(with: JSONData, options: .allowFragments) as? [String: AnyObject]
+            guard let JSONObj = try JSONSerialization.jsonObject(with: JSONData, options: .allowFragments) as? [String: Any]
               else { throw SerializationError.json }
             
             var messageType: MessageType = .unrecognized
-            if let typeObj = JSONObj["type"], let typeString = typeObj as? String {
+            if let typeString = JSONObj["type"] as? String {
               messageType = MessageType(string: typeString)
             }
 
@@ -88,7 +88,7 @@ internal class JSONSerializer {
                                error: nil)
             case .message, .unrecognized:
                 var messageActionName : String?
-                var messageValue      : [String: AnyObject]?
+                var messageValue      : [String: Any]?
                 var messageError      : Swift.Error?
                 
                 do {
@@ -97,7 +97,7 @@ internal class JSONSerializer {
                         else { throw SerializationError.protocolViolation }
                     
                     // No message was extracted from identifier
-                    guard let messageObj = JSONObj["message"] as? [String:AnyObject]
+                    guard let messageObj = JSONObj["message"] as? [String: Any]
                         else { throw SerializationError.protocolViolation }
                     
                     if let actionStr = messageObj["action"] as? String {
