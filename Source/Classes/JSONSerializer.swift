@@ -88,7 +88,7 @@ internal class JSONSerializer {
                                error: nil)
             case .message, .unrecognized:
                 var messageActionName : String?
-                var messageValue      : [String: AnyHashable]?
+                var messageValue      : [String: AnyObject]?
                 var messageError      : Swift.Error?
                 
                 do {
@@ -97,7 +97,7 @@ internal class JSONSerializer {
                         else { throw SerializationError.protocolViolation }
                     
                     // No message was extracted from identifier
-                    guard let messageObj = JSONObj["message"] as? [String: AnyHashable]
+                    guard let messageObj = JSONObj["message"] as? [String:AnyObject]
                         else { throw SerializationError.protocolViolation }
                     
                     if let actionStr = messageObj["action"] as? String {
