@@ -46,7 +46,8 @@ public typealias OnReceiveClosure = ((Any?, Swift.Error?) -> (Void))
     
     /// Subscribed
     @objc public var isSubscribed : Bool {
-        return client.subscribed(identifier: identifier)
+        guard let c = client else { return false }
+        return c.subscribed(identifier: identifier)
     }
     
     /// A block called when a message has been received on this channel.
@@ -153,7 +154,8 @@ public typealias OnReceiveClosure = ((Any?, Swift.Error?) -> (Void))
     @discardableResult
     @objc public func action(_ name: String, with params: [String: Any]? = nil) -> Swift.Error? {
         do {
-          try (client.action(name, on: self, with: params))
+            guard let c = client else { return nil }
+            try (c.action(name, on: self, with: params))
         // Consume the error and return false if the error is a not subscribed
         // error and we are buffering the actions.
         } catch TransmitError.notSubscribed where self.shouldBufferActions {
@@ -178,7 +180,8 @@ public typealias OnReceiveClosure = ((Any?, Swift.Error?) -> (Void))
     /// channel.subscribe()
     /// ```
     @objc public func subscribe() {
-        client.subscribe(self)
+        guard let c = client else { return }
+        c.subscribe(self)
     }
     
     /// Unsubscribe from the channel on the server.
@@ -189,11 +192,12 @@ public typealias OnReceiveClosure = ((Any?, Swift.Error?) -> (Void))
     /// channel.unsubscribe()
     /// ```
     @objc public func unsubscribe() {
-        client.unsubscribe(self)
+        guard let c = client else { return }
+        c.unsubscribe(self)
     }
     
     internal var onReceiveActionHooks: Dictionary<String, OnReceiveClosure> = Dictionary()
-    internal unowned var client: ActionCableClient
+    internal weak var client: ActionCableClient?
     internal var actionBuffer: Array<Action> = Array()
     override public var hash: Int {
         get {
